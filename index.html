@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Baue deinen Rhythmus</title>
+
+  <style>
+    :root {
+      --blue: #2563eb;
+      --green: #16a34a;
+      --orange: #ea580c;
+      --purple: #9333ea;
+      --dark: #1f2937;
+      --light: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: var(--dark);
+      background: linear-gradient(135deg, #dbeafe, #fef3c7);
+    }
+
+    .app {
+      max-width: 1050px;
+      margin: auto;
+      padding: 28px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #1d4ed8;
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+
+    h2 {
+      margin-top: 28px;
+      color: #1e40af;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .intro {
+      padding: 16px;
+      border-radius: 14px;
+      background: #eff6ff;
+    }
+
+    .syllables {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 20px 0 30px;
+    }
+
+    .syllable {
+      padding: 20px 10px;
+      border: 4px solid;
+      border-radius: 16px;
+      text-align: center;
+      font-size: 1.7rem;
+      font-weight: bold;
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .syllable:hover {
+      transform: translateY(-4px);
+      filter: brightness(1.08);
+    }
+
+    .syllable:active {
+      cursor: grabbing;
+    }
+
+    .syllable-ti {
+      background: #bfdbfe;
+      border-color: var(--blue);
+      color: #1e3a8a;
+    }
+
+    .syllable-ta {
+      background: #bbf7d0;
+      border-color: var(--green);
+      color: #166534;
+    }
+
+    .syllable-tao {
+      background: #fed7aa;
+      border-color: var(--orange);
+      color: #9a3412;
+    }
+
+    .syllable-taoao {
+      background: #e9d5ff;
+      border-color: var(--purple);
+      color: #6b21a8;
+    }
+
+    .measure-wrapper {
+      overflow-x: auto;
+      padding: 12px 4px 22px;
+    }
+
+    .measure {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      min-width: 820px;
+      min-height: 180px;
+      border: 5px solid #111827;
+      border-radius: 10px;
+      background: white;
+    }
+
+    .grid-cell {
+      position: relative;
+      min-height: 170px;
+      border-right: 1px solid #cbd5e1;
+      transition: background 0.2s;
+    }
+
+    .grid-cell:last-child {
+      border-right: 0;
+    }
+
+    .grid-cell.beat-start {
+      border-left: 3px solid #111827;
+    }
+
+    .grid-cell.dragover {
+      background: #dcfce7;
+    }
+
+    .count-label {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      z-index: 3;
+      transform: translateX(-50%);
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #111827;
+      color: white;
+      font-weight: bold;
+    }
+
+    .count-label.plus {
+      background: #94a3b8;
+      font-size: 1rem;
+    }
+
+    .placed {
+      position: absolute;
+      top: 70px;
+      z-index: 5;
+      height: 76px;
+      border: 3px solid #b45309;
+      border-radius: 12px;
+      background: #fef3c7;
+      color: #78350f;
+      font-size: 1.35rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .placed:hover {
+      background: #fde68a;
+    }
+
+    .placed:hover::after {
+      content: "  ×";
+      color: #dc2626;
+    }
+
+    .status {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 14px;
+      background: #f3f4f6;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .status.correct {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button {
+      padding: 13px 18px;
+      border: 0;
+      border-radius: 11px;
+      background: var(--blue);
+      color: white;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    .example-button {
+      background: var(--green);
+    }
+
+    .clear-button {
+      background: #64748b;
+    }
+
+    .help {
+      margin-top: 28px;
+      padding: 18px;
+      border-radius: 16px;
+      background: var(--light);
+    }
+
+    .help strong {
+      color: #1d4ed8;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 10px;
+      }
+
+      .app {
+        padding: 18px;
+      }
+
+      .syllables {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <h1>Baue deinen Rhythmus!</h1>
+
+    <p class="intro">
+      Ziehe eine Silbe auf den Takt. Du kannst auch auf eine Kachel klicken.
+      Zähle laut mit: <strong>1 + 2 + 3 + 4 +</strong>
+    </p>
+
+    <h2>Deine Rhythmussilben</h2>
+
+    <section class="syllables" aria-label="Rhythmussilben">
+      <div
+        class="syllable syllable-ti"
+        draggable="true"
+        data-name="Ti"
+        data-length="1"
+      >
+        Ti
+      </div>
+
+      <div
+        class="syllable syllable-ta"
+        draggable="true"
+        data-name="Ta"
+        data-length="2"
+      >
+        Ta
+      </div>
+
+      <div
+        class="syllable syllable-tao"
+        draggable="true"
+        data-name="Tao"
+        data-length="4"
+      >
+        Tao
+      </div>
+
+      <div
+        class="syllable syllable-taoao"
+        draggable="true"
+        data-name="Taoao"
+        data-length="8"
+      >
+        Taoao
+      </div>
+    </section>
+
+    <h2>Dein 4/4-Takt</h2>
+
+    <p>
+      Die Zahlen sind die Hauptzählzeiten. Das Pluszeichen liegt dazwischen.
+    </p>
+
+    <div class="measure-wrapper">
+      <section
+        class="measure"
+        id="measure"
+        aria-label="Taktraster mit acht halben Zählzeiten"
+      >
+        <div class="grid-cell beat-start" data-index="0">
+          <span class="count-label">1</span>
+        </div>
+
+        <div class="grid-cell" data-index="1">
+          <span class="count-label plus">+</span>
+        </div>
+
+        <div class="grid-cell beat-start" data-index="2">
+          <span class="count-label">2</span>
+        </div>
+
+        <div class="grid-cell" data-index="3">
+          <span class="count-label plus">+</span>
+        </div>
+
+        <div class="grid-cell beat-start" data-index="4">
+          <span class="count-label">3</span>
+        </div>
+
+        <div class="grid-cell" data-index="5">
+          <span class="count-label plus">+</span>
+        </div>
+
+        <div class="grid-cell beat-start" data-index="6">
+          <span class="count-label">4</span>
+        </div>
+
+        <div class="grid-cell" data-index="7">
+          <span class="count-label plus">+</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="status" id="status">
+      Los geht's! Ziehe eine Silbe auf den Takt.
+    </div>
+
+    <div class="controls">
+      <button class="example-button" id="exampleButton">
+        Beispiel zeigen
+      </button>
+
+      <button class="clear-button" id="clearButton">
+        Alles weg
+      </button>
+
+      <button id="checkButton">
+        Takt prüfen
+      </button>
+    </div>
+
+    <section class="help">
+      <h2>So geht's</h2>
+
+      <p>
+        <strong>Ti</strong> braucht ein kleines Feld.
+      </p>
+
+      <p>
+        <strong>Ta</strong> braucht zwei kleine Felder.
+      </p>
+
+      <p>
+        <strong>Tao</strong> braucht vier kleine Felder.
+      </p>
+
+      <p>
+        <strong>Taoao</strong> braucht alle acht kleinen Felder.
+      </p>
+
+      <p>
+        Klicke auf eine eingesetzte Silbe, wenn du sie wieder wegnehmen
+        möchtest.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const syllables = document.querySelectorAll(".syllable");
+    const cells = document.querySelectorAll(".grid-cell");
+    const measure = document.getElementById("measure");
+    const statusBox = document.getElementById("status");
+    const clearButton = document.getElementById("clearButton");
+    const exampleButton = document.getElementById("exampleButton");
+    const checkButton = document.getElementById("checkButton");
+
+    let draggedName = null;
+
+    syllables.forEach((syllable) => {
+      syllable.addEventListener("dragstart", (event) => {
+        draggedName = syllable.dataset.name;
+        event.dataTransfer.setData("text/plain", draggedName);
+      });
+
+      syllable.addEventListener("click", () => {
+        const length = Number(syllable.dataset.length);
+        const position = findFirstFreePosition(length);
+
+        if (position === -1) {
+          showStatus(
+            "Oh! Hier ist nicht mehr genug Platz. Nimm zuerst eine Silbe weg.",
+            "error"
+          );
+          return;
+        }
+
+        addSyllable(position, syllable);
+      });
+    });
+
+    cells.forEach((cell) => {
+      cell.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        cell.classList.add("dragover");
+      });
+
+      cell.addEventListener("dragleave", () => {
+        cell.classList.remove("dragover");
+      });
+
+      cell.addEventListener("drop", (event) => {
+        event.preventDefault();
+        cell.classList.remove("dragover");
+
+        const syllable = [...syllables].find(
+          (item) => item.dataset.name === draggedName
+        );
+
+        if (syllable) {
+          addSyllable(Number(cell.dataset.index), syllable);
+        }
+      });
+    });
+
+    function addSyllable(startIndex, syllable) {
+      const name = syllable.dataset.name;
+      const length = Number(syllable.dataset.length);
+
+      if (startIndex + length > 8) {
+        showStatus(
+          "Diese Silbe ist an dieser Stelle zu lang. Probiere eine andere Stelle.",
+          "error"
+        );
+        return;
+      }
+
+      if (!areCellsFree(startIndex, length)) {
+        showStatus(
+          "Hier ist nicht genug Platz. Probiere eine andere Stelle.",
+          "error"
+        );
+        return;
+      }
+
+      const placed = document.createElement("button");
+
+      placed.className = "placed";
+      placed.textContent = name;
+      placed.dataset.start = startIndex;
+      placed.dataset.length = length;
+      placed.setAttribute("aria-label", `${name} entfernen`);
+
+      placed.style.left = `${(startIndex / 8) * 100}%`;
+      placed.style.width = `calc(${(length / 8) * 100}% - 8px)`;
+
+      placed.addEventListener("click", () => {
+        placed.remove();
+        updateStatus();
+      });
+
+      measure.appendChild(placed);
+      updateStatus();
+    }
+
+    function areCellsFree(startIndex, length) {
+      const newEnd = startIndex + length;
+      const placedItems = document.querySelectorAll(".placed");
+
+      return [...placedItems].every((item) => {
+        const itemStart = Number(item.dataset.start);
+        const itemEnd = itemStart + Number(item.dataset.length);
+
+        return newEnd <= itemStart || startIndex >= itemEnd;
+      });
+    }
+
+    function findFirstFreePosition(length) {
+      for (let index = 0; index <= 8 - length; index++) {
+        if (areCellsFree(index, length)) {
+          return index;
+        }
+      }
+
+      return -1;
+    }
+
+    function getUsedLength() {
+      return [...document.querySelectorAll(".placed")].reduce(
+        (sum, item) => sum + Number(item.dataset.length),
+        0
+      );
+    }
+
+    function updateStatus() {
+      const used = getUsedLength();
+
+      if (used === 0) {
+        showStatus("Los geht's! Ziehe eine Silbe auf den Takt.");
+      } else if (used < 8) {
+        showStatus(
+          `Gut gemacht! Es fehlen noch ${8 - used} kleine Felder.`
+        );
+      } else {
+        showStatus(
+          "Super! Dein Rhythmus füllt den ganzen 4/4-Takt.",
+          "correct"
+        );
+      }
+    }
+
+    function showStatus(message, type = "") {
+      statusBox.textContent = message;
+      statusBox.className = "status";
+
+      if (type) {
+        statusBox.classList.add(type);
+      }
+    }
+
+    clearButton.addEventListener("click", () => {
+      document.querySelectorAll(".placed").forEach((item) => {
+        item.remove();
+      });
+
+      updateStatus();
+    });
+
+    exampleButton.addEventListener("click", () => {
+      clearButton.click();
+
+      const ti = [...syllables].find(
+        (item) => item.dataset.name === "Ti"
+      );
+
+      const ta = [...syllables].find(
+        (item) => item.dataset.name === "Ta"
+      );
+
+      addSyllable(0, ti);
+      addSyllable(1, ti);
+      addSyllable(2, ta);
+      addSyllable(4, ti);
+      addSyllable(5, ti);
+      addSyllable(6, ta);
+    });
+
+    checkButton.addEventListener("click", () => {
+      const used = getUsedLength();
+
+      if (used === 8) {
+        showStatus(
+          "Richtig! Dein Rhythmus passt genau in den 4/4-Takt.",
+          "correct"
+        );
+      } else {
+        showStatus(
+          `Noch nicht ganz. Es fehlen noch ${8 - used} kleine Felder.`,
+          "error"
+        );
+      }
+    });
+  </script>
+</body>
+</html>
